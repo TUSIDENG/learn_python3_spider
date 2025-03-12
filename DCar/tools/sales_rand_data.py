@@ -13,10 +13,28 @@ async def download(url: str, params: dict[str, Any]):
         data = response.json()
         print('page_info', data['data']['paging'])
         print('page_list', data['data']['list'])
+        if 'paging' in data['data']:
+            print("paging键 存在")
+        else:
+            print("paging键 不存在")
+        return data
+
       else:
           print('异常', response)
+          res = {
+              "code": response.status_code,
+              "message": response.text,
+              "data": None
+          }
+          return res
     except Exception as e:
         print('exception. ：', e)
+        res = {
+            "code": 500,
+            "message": str(e),
+            "data": None
+        }
+        return res
 
 
 
