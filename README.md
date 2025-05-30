@@ -85,6 +85,7 @@ peace.
 - [使用 scrapy 爬取 stackoverflow 上的所有 Python 问答](https://mp.weixin.qq.com/s?__biz=MzU2ODYzNTkwMg==&mid=2247485754&idx=1&sn=3e52aa0ac13f3a23c6dee2b75424f0f5&scene=19&token=464856977&lang=zh_CN#wechat_redirect)
 - [爬取周杰伦新歌《说好不哭》的所有评论，然后生成词云图](https://mp.weixin.qq.com/s?__biz=MzU2ODYzNTkwMg==&mid=2247485571&idx=1&sn=094517114b22a4684988008aecab2639&scene=19&token=464856977&lang=zh_CN#wechat_redirect)
 - [我整来了几台服务器，就是为了给你演示一下分布式爬虫的整个过程](https://mp.weixin.qq.com/s?__biz=MzU2ODYzNTkwMg==&mid=2247485863&idx=1&sn=34f9fb196c77dffdcce4a610b622270d&scene=19&token=464856977&lang=zh_CN#wechat_redirect)
+- [Firecrawl 抓取沃尔玛评论](./fire_crawl_walmart/README.md)
 
 
 ## 爬虫实例源代码
