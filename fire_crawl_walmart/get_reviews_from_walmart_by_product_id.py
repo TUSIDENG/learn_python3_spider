@@ -15,6 +15,7 @@ from bs4 import BeautifulSoup
 from firecrawl import AsyncFirecrawlApp
 from datetime import datetime
 from dotenv import load_dotenv
+from firecrawl.firecrawl import WaitAction
 
 # 加载.env文件
 load_dotenv()
@@ -103,18 +104,14 @@ async def extract_reviews(soup):
             else:
                 review['verified_purchase'] = False
             
-            # Extract color information if available
-            # @todo 颜色提取待处理
-            color_parent = section.find('div', {'class': 'flex f7 items-start content-start self-stretch flex-wrap mt1'})
-            if color_parent:
-                color_div = color_parent.find('div', {'class': 'flex'})
-                if color_div and 'Color' in color_div.get_text():
-                    color_text = color_div.get_text(strip=True)
-                    review['color'] = color_text.split(':')[1].strip()
-                else:
-                    review['color'] = ''
+            # Extract SKU variant information if available
+            # sku变体页面上的选择器是：flex f7 items-start content-start self-stretch flex-wrap mt1
+            # 但是抓取下来的内容页面选择器是：flex flex-column f7
+            variant_parent = section.find('div', {'class': 'flex flex-column f7'})
+            if variant_parent:
+                review['sku_variant'] = variant_parent.get_text(strip=True)
             else:
-                review['color'] = ''
+                review['sku_variant'] = ''
             
             # Extract helpful votes
             helpful_buttons = section.find_all('button', {'class': 'flex items-center sans-serif ph2 b--none bg-transparent pointer'})
@@ -136,15 +133,29 @@ async def extract_reviews(soup):
     return reviews
 
 
-async def scrape_reviews_page(app, product_id, page=1):
+async def scrape_reviews_page(app: AsyncFirecrawlApp, product_id, page=1):
     """Scrape a single page of reviews."""
     base_url = f"https://www.walmart.com/reviews/product/{product_id}?entryPoint=viewAllReviewsBottom"
     url = f"{base_url}&page={page}" if page > 1 else base_url
     
+    import logging
+    logging.basicConfig(
+        filename='walmart_scraping.log',
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    
+    start_time = datetime.now()
     response = await app.scrape_url(
         url=url,
         formats=['html'],
+        actions=[
+            WaitAction(type="wait", milliseconds=3000)
+        ]
     )
+    end_time = datetime.now()
+    elapsed_time = end_time - start_time
+    logging.info(f"Request to {url} took {elapsed_time.total_seconds():.2f} seconds")
     
     # Save HTML content with random number
     random_num = random.randint(1000, 9999)
@@ -171,7 +182,7 @@ def save_reviews_to_csv(reviews, product_id):
         'title', 
         'content', 
         'verified_purchase',
-        'color',
+        'sku_variant',
         'helpful_votes'
     ]
     
@@ -197,7 +208,7 @@ async def main():
     
     # Get reviews from multiple pages
     all_reviews = []
-    for page in range(1, 4):  # Get first 3 pages
+    for page in range(1, 2):  # Get first 3 pages
         page_reviews = await scrape_reviews_page(app, product_id, page)
         all_reviews.extend(page_reviews)
     reviews = all_reviews
@@ -219,8 +230,8 @@ async def main():
             print(f"Title: {review['title']}")
         print(f"Content: {review.get('content', 'N/A')}")
         print(f"Verified Purchase: {'Yes' if review.get('verified_purchase') else 'No'}")
-        if review.get('color'):
-            print(f"Color: {review['color']}")
+        if review.get('sku_variant'):
+            print(f"SKU Variant: {review['sku_variant']}")
         print(f"Helpful Votes: {review.get('helpful_votes', '0')}")
 
 
